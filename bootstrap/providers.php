@@ -1,0 +1,11 @@
+<?php
+
+use App\Infrastructure\Providers\RepositoryServiceProvider;
+use App\Providers\AppServiceProvider;
+use App\Providers\EventServiceProvider;
+
+return [
+    AppServiceProvider::class,
+    EventServiceProvider::class,
+    RepositoryServiceProvider::class,
+];

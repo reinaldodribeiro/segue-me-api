@@ -1,0 +1,977 @@
+{
+  "info": {
+    "name": "Segue-me API",
+    "description": "API REST do sistema Segue-me para gestão de encontros paroquiais.\n\n## Configuração rápida\n1. Importe esta collection\n2. Configure a variável `base_url` (padrão: `http://localhost:8000`)\n3. Use **POST Auth / Login** para autenticar — o token é salvo automaticamente\n4. Todas as demais requisições já incluem o header `Authorization: Bearer {{token}}`\n\n## Credenciais do seeder\n- Super Admin: `admin@segue-me.app` / `password`\n- Parish Admin: `parish@segue-me.app` / `password`\n- Coordinator: `coord@segue-me.app` / `password`",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url",    "value": "http://localhost:8000", "type": "string" },
+    { "key": "token",       "value": "",                      "type": "string" },
+    { "key": "diocese_id",  "value": "",                      "type": "string" },
+    { "key": "sector_id",   "value": "",                      "type": "string" },
+    { "key": "parish_id",   "value": "",                      "type": "string" },
+    { "key": "user_id",     "value": "",                      "type": "string" },
+    { "key": "person_id",   "value": "",                      "type": "string" },
+    { "key": "movement_id", "value": "",                      "type": "string" },
+    { "key": "movement_team_id", "value": "",                 "type": "string" },
+    { "key": "encounter_id","value": "",                      "type": "string" },
+    { "key": "team_id",     "value": "",                      "type": "string" },
+    { "key": "member_id",   "value": "",                      "type": "string" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.token) {",
+                  "  pm.collectionVariables.set('token', json.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"coord@segue-me.app\",\n  \"password\": \"password\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/auth/login", "host": ["{{base_url}}"], "path": ["api", "auth", "login"] }
+          }
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/auth/me", "host": ["{{base_url}}"], "path": ["api", "auth", "me"] }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{base_url}}/api/auth/logout", "host": ["{{base_url}}"], "path": ["api", "auth", "logout"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Usuários",
+      "item": [
+        {
+          "name": "Listar usuários",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/users?search=&active=true&per_page=20",
+              "host": ["{{base_url}}"], "path": ["api", "users"],
+              "query": [
+                { "key": "search",   "value": "",     "description": "Filtro por nome ou e-mail" },
+                { "key": "active",   "value": "true", "description": "true | false" },
+                { "key": "per_page", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Criar usuário",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.data && json.data.id) pm.collectionVariables.set('user_id', json.data.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Novo Coordenador\",\n  \"email\": \"novo.coord@exemplo.com\",\n  \"password\": \"password123\",\n  \"role\": \"coordinator\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/users", "host": ["{{base_url}}"], "path": ["api", "users"] }
+          }
+        },
+        {
+          "name": "Exibir usuário",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/users/{{user_id}}", "host": ["{{base_url}}"], "path": ["api", "users", "{{user_id}}"] }
+          }
+        },
+        {
+          "name": "Atualizar usuário",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Nome Atualizado\",\n  \"email\": \"novo.coord@exemplo.com\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/users/{{user_id}}", "host": ["{{base_url}}"], "path": ["api", "users", "{{user_id}}"] }
+          }
+        },
+        {
+          "name": "Remover usuário",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{base_url}}/api/users/{{user_id}}", "host": ["{{base_url}}"], "path": ["api", "users", "{{user_id}}"] }
+          }
+        },
+        {
+          "name": "Ativar / Desativar usuário",
+          "request": {
+            "method": "PATCH",
+            "url": { "raw": "{{base_url}}/api/users/{{user_id}}/toggle-active", "host": ["{{base_url}}"], "path": ["api", "users", "{{user_id}}", "toggle-active"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Diocese",
+      "item": [
+        {
+          "name": "Listar dioceses",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/dioceses", "host": ["{{base_url}}"], "path": ["api", "dioceses"] }
+          }
+        },
+        {
+          "name": "Criar diocese",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.data && json.data.id) pm.collectionVariables.set('diocese_id', json.data.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Diocese de São Paulo\",\n  \"slug\": \"diocese-sao-paulo\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/dioceses", "host": ["{{base_url}}"], "path": ["api", "dioceses"] }
+          }
+        },
+        {
+          "name": "Exibir diocese",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/dioceses/{{diocese_id}}", "host": ["{{base_url}}"], "path": ["api", "dioceses", "{{diocese_id}}"] }
+          }
+        },
+        {
+          "name": "Atualizar diocese",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Diocese de São Paulo Atualizada\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/dioceses/{{diocese_id}}", "host": ["{{base_url}}"], "path": ["api", "dioceses", "{{diocese_id}}"] }
+          }
+        },
+        {
+          "name": "Remover diocese",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{base_url}}/api/dioceses/{{diocese_id}}", "host": ["{{base_url}}"], "path": ["api", "dioceses", "{{diocese_id}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Setor",
+      "item": [
+        {
+          "name": "Listar setores da diocese",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/dioceses/{{diocese_id}}/sectors", "host": ["{{base_url}}"], "path": ["api", "dioceses", "{{diocese_id}}", "sectors"] }
+          }
+        },
+        {
+          "name": "Criar setor",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.data && json.data.id) pm.collectionVariables.set('sector_id', json.data.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Setor Norte\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/dioceses/{{diocese_id}}/sectors", "host": ["{{base_url}}"], "path": ["api", "dioceses", "{{diocese_id}}", "sectors"] }
+          }
+        },
+        {
+          "name": "Exibir setor",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/sectors/{{sector_id}}", "host": ["{{base_url}}"], "path": ["api", "sectors", "{{sector_id}}"] }
+          }
+        },
+        {
+          "name": "Atualizar setor",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Setor Norte Atualizado\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/sectors/{{sector_id}}", "host": ["{{base_url}}"], "path": ["api", "sectors", "{{sector_id}}"] }
+          }
+        },
+        {
+          "name": "Remover setor",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{base_url}}/api/sectors/{{sector_id}}", "host": ["{{base_url}}"], "path": ["api", "sectors", "{{sector_id}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Paróquia",
+      "item": [
+        {
+          "name": "Listar paróquias do setor",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/sectors/{{sector_id}}/parishes", "host": ["{{base_url}}"], "path": ["api", "sectors", "{{sector_id}}", "parishes"] }
+          }
+        },
+        {
+          "name": "Criar paróquia",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.data && json.data.id) pm.collectionVariables.set('parish_id', json.data.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Paróquia São José\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/sectors/{{sector_id}}/parishes", "host": ["{{base_url}}"], "path": ["api", "sectors", "{{sector_id}}", "parishes"] }
+          }
+        },
+        {
+          "name": "Exibir paróquia",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/parishes/{{parish_id}}", "host": ["{{base_url}}"], "path": ["api", "parishes", "{{parish_id}}"] }
+          }
+        },
+        {
+          "name": "Atualizar paróquia",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Paróquia São José Atualizada\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/parishes/{{parish_id}}", "host": ["{{base_url}}"], "path": ["api", "parishes", "{{parish_id}}"] }
+          }
+        },
+        {
+          "name": "Remover paróquia",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{base_url}}/api/parishes/{{parish_id}}", "host": ["{{base_url}}"], "path": ["api", "parishes", "{{parish_id}}"] }
+          }
+        },
+        {
+          "name": "Upload de logo",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "logo", "type": "file", "src": "", "description": "Arquivo de imagem (jpeg, png, webp, max 2MB)" }
+              ]
+            },
+            "url": { "raw": "{{base_url}}/api/parishes/{{parish_id}}/logo", "host": ["{{base_url}}"], "path": ["api", "parishes", "{{parish_id}}", "logo"] }
+          }
+        },
+        {
+          "name": "Relatório de engajamento",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/parishes/{{parish_id}}/report/engagement", "host": ["{{base_url}}"], "path": ["api", "parishes", "{{parish_id}}", "report", "engagement"] }
+          }
+        },
+        {
+          "name": "Listar habilidades da paróquia",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/parishes/{{parish_id}}/skills", "host": ["{{base_url}}"], "path": ["api", "parishes", "{{parish_id}}", "skills"] }
+          }
+        },
+        {
+          "name": "Definir habilidades da paróquia",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"skills\": [\"Música\", \"Teatro\", \"Cozinha\", \"Multimídia\"]\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/parishes/{{parish_id}}/skills", "host": ["{{base_url}}"], "path": ["api", "parishes", "{{parish_id}}", "skills"] }
+          }
+        },
+        {
+          "name": "Remover habilidades da paróquia",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"skills\": [\"Teatro\"]\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/parishes/{{parish_id}}/skills", "host": ["{{base_url}}"], "path": ["api", "parishes", "{{parish_id}}", "skills"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Pessoas",
+      "item": [
+        {
+          "name": "Listar pessoas",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/people?search=&type=&active=true&per_page=20",
+              "host": ["{{base_url}}"], "path": ["api", "people"],
+              "query": [
+                { "key": "search",   "value": "",     "description": "Filtro por nome, e-mail ou telefone" },
+                { "key": "type",     "value": "",     "description": "youth | couple" },
+                { "key": "active",   "value": "true" },
+                { "key": "per_page", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Criar pessoa (jovem)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.data && json.data.id) pm.collectionVariables.set('person_id', json.data.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"youth\",\n  \"name\": \"João da Silva\",\n  \"birth_date\": \"2000-06-15\",\n  \"phone\": \"11999990001\",\n  \"email\": \"joao@exemplo.com\",\n  \"skills\": [\"Música\", \"Teatro\"]\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/people", "host": ["{{base_url}}"], "path": ["api", "people"] }
+          }
+        },
+        {
+          "name": "Criar pessoa (casal)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"couple\",\n  \"name\": \"Carlos Santos\",\n  \"partner_name\": \"Maria Santos\",\n  \"birth_date\": \"1985-03-20\",\n  \"partner_birth_date\": \"1987-08-10\",\n  \"wedding_date\": \"2010-11-05\",\n  \"phone\": \"11999990002\",\n  \"email\": \"carlos.maria@exemplo.com\",\n  \"skills\": [\"Cozinha\"]\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/people", "host": ["{{base_url}}"], "path": ["api", "people"] }
+          }
+        },
+        {
+          "name": "Exibir pessoa",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/people/{{person_id}}", "host": ["{{base_url}}"], "path": ["api", "people", "{{person_id}}"] }
+          }
+        },
+        {
+          "name": "Atualizar pessoa",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"João da Silva Atualizado\",\n  \"phone\": \"11988880001\",\n  \"skills\": [\"Música\", \"Multimídia\"]\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/people/{{person_id}}", "host": ["{{base_url}}"], "path": ["api", "people", "{{person_id}}"] }
+          }
+        },
+        {
+          "name": "Remover pessoa",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{base_url}}/api/people/{{person_id}}", "host": ["{{base_url}}"], "path": ["api", "people", "{{person_id}}"] }
+          }
+        },
+        {
+          "name": "Histórico de participações",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/people/{{person_id}}/history", "host": ["{{base_url}}"], "path": ["api", "people", "{{person_id}}", "history"] }
+          }
+        },
+        {
+          "name": "Sugestão de equipes para pessoa",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/people/{{person_id}}/suggested-teams", "host": ["{{base_url}}"], "path": ["api", "people", "{{person_id}}", "suggested-teams"] }
+          }
+        },
+        {
+          "name": "Importar via planilha",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "file", "type": "file", "src": "", "description": "Planilha .xlsx com as pessoas" }
+              ]
+            },
+            "url": { "raw": "{{base_url}}/api/people/import/spreadsheet", "host": ["{{base_url}}"], "path": ["api", "people", "import", "spreadsheet"] }
+          }
+        },
+        {
+          "name": "Importar via scan (OCR)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "image", "type": "file", "src": "", "description": "Imagem com lista de inscrição" }
+              ]
+            },
+            "url": { "raw": "{{base_url}}/api/people/import/scan", "host": ["{{base_url}}"], "path": ["api", "people", "import", "scan"] }
+          }
+        },
+        {
+          "name": "Status da importação",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/people/import/status?cache_key=",
+              "host": ["{{base_url}}"], "path": ["api", "people", "import", "status"],
+              "query": [{ "key": "cache_key", "value": "", "description": "Retornado pelo endpoint de importação" }]
+            }
+          }
+        },
+        {
+          "name": "Baixar template de planilha",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/people/import/template", "host": ["{{base_url}}"], "path": ["api", "people", "import", "template"] }
+          }
+        },
+        {
+          "name": "Exportar para Excel",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/people/export/excel", "host": ["{{base_url}}"], "path": ["api", "people", "export", "excel"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Movimentos",
+      "item": [
+        {
+          "name": "Listar movimentos",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/movements", "host": ["{{base_url}}"], "path": ["api", "movements"] }
+          }
+        },
+        {
+          "name": "Criar movimento",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.data && json.data.id) pm.collectionVariables.set('movement_id', json.data.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Encontro de Jovens\",\n  \"scope\": \"youth\",\n  \"description\": \"Encontro voltado para jovens da paróquia.\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/movements", "host": ["{{base_url}}"], "path": ["api", "movements"] }
+          }
+        },
+        {
+          "name": "Exibir movimento",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/movements/{{movement_id}}", "host": ["{{base_url}}"], "path": ["api", "movements", "{{movement_id}}"] }
+          }
+        },
+        {
+          "name": "Atualizar movimento",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Encontro de Jovens Atualizado\",\n  \"description\": \"Descrição atualizada.\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/movements/{{movement_id}}", "host": ["{{base_url}}"], "path": ["api", "movements", "{{movement_id}}"] }
+          }
+        },
+        {
+          "name": "Remover movimento",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{base_url}}/api/movements/{{movement_id}}", "host": ["{{base_url}}"], "path": ["api", "movements", "{{movement_id}}"] }
+          }
+        },
+        {
+          "name": "Listar equipes do movimento (templates)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/movements/{{movement_id}}/teams", "host": ["{{base_url}}"], "path": ["api", "movements", "{{movement_id}}", "teams"] }
+          }
+        },
+        {
+          "name": "Criar equipe template",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.data && json.data.id) pm.collectionVariables.set('movement_team_id', json.data.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Equipe de Louvor\",\n  \"min_members\": 3,\n  \"max_members\": 8,\n  \"accepted_type\": \"all\",\n  \"recommended_skills\": [\"Música\"],\n  \"order\": 1\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/movements/{{movement_id}}/teams", "host": ["{{base_url}}"], "path": ["api", "movements", "{{movement_id}}", "teams"] }
+          }
+        },
+        {
+          "name": "Exibir equipe template",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/movements/{{movement_id}}/teams/{{movement_team_id}}", "host": ["{{base_url}}"], "path": ["api", "movements", "{{movement_id}}", "teams", "{{movement_team_id}}"] }
+          }
+        },
+        {
+          "name": "Atualizar equipe template",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Equipe de Louvor e Música\",\n  \"min_members\": 4,\n  \"max_members\": 10,\n  \"accepted_type\": \"all\",\n  \"recommended_skills\": [\"Música\"],\n  \"order\": 1\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/movements/{{movement_id}}/teams/{{movement_team_id}}", "host": ["{{base_url}}"], "path": ["api", "movements", "{{movement_id}}", "teams", "{{movement_team_id}}"] }
+          }
+        },
+        {
+          "name": "Reordenar equipes template",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order\": [\n    \"<movement_team_id_1>\",\n    \"<movement_team_id_2>\",\n    \"<movement_team_id_3>\"\n  ]\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/movements/{{movement_id}}/teams/reorder", "host": ["{{base_url}}"], "path": ["api", "movements", "{{movement_id}}", "teams", "reorder"] }
+          }
+        },
+        {
+          "name": "Remover equipe template",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{base_url}}/api/movements/{{movement_id}}/teams/{{movement_team_id}}", "host": ["{{base_url}}"], "path": ["api", "movements", "{{movement_id}}", "teams", "{{movement_team_id}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Encontros",
+      "item": [
+        {
+          "name": "Listar encontros",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/encounters?status=&movement_id=&per_page=20",
+              "host": ["{{base_url}}"], "path": ["api", "encounters"],
+              "query": [
+                { "key": "status",      "value": "", "description": "draft | confirmed | completed" },
+                { "key": "movement_id", "value": "" },
+                { "key": "per_page",    "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Criar encontro",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.data && json.data.id) pm.collectionVariables.set('encounter_id', json.data.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"movement_id\": \"{{movement_id}}\",\n  \"name\": \"1º Encontro 2025\",\n  \"date\": \"2025-06-15\",\n  \"location\": \"Centro Paroquial São José\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/encounters", "host": ["{{base_url}}"], "path": ["api", "encounters"] }
+          }
+        },
+        {
+          "name": "Exibir encontro",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/encounters/{{encounter_id}}", "host": ["{{base_url}}"], "path": ["api", "encounters", "{{encounter_id}}"] }
+          }
+        },
+        {
+          "name": "Atualizar encontro",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"1º Encontro 2025 Atualizado\",\n  \"date\": \"2025-06-20\",\n  \"location\": \"Salão Paroquial\",\n  \"status\": \"confirmed\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/encounters/{{encounter_id}}", "host": ["{{base_url}}"], "path": ["api", "encounters", "{{encounter_id}}"] }
+          }
+        },
+        {
+          "name": "Atualizar status do encontro",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"completed\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Valores possíveis de status:\n- `draft` → Rascunho\n- `confirmed` → Confirmado\n- `completed` → Realizado (irreversível)",
+            "url": { "raw": "{{base_url}}/api/encounters/{{encounter_id}}", "host": ["{{base_url}}"], "path": ["api", "encounters", "{{encounter_id}}"] }
+          }
+        },
+        {
+          "name": "Remover encontro",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{base_url}}/api/encounters/{{encounter_id}}", "host": ["{{base_url}}"], "path": ["api", "encounters", "{{encounter_id}}"] }
+          }
+        },
+        {
+          "name": "Resumo do encontro",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/encounters/{{encounter_id}}/summary", "host": ["{{base_url}}"], "path": ["api", "encounters", "{{encounter_id}}", "summary"] }
+          }
+        },
+        {
+          "name": "Pessoas disponíveis para o encontro",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/encounters/{{encounter_id}}/available-people?search=&type=&skills[]=&never_in_movement=false",
+              "host": ["{{base_url}}"], "path": ["api", "encounters", "{{encounter_id}}", "available-people"],
+              "query": [
+                { "key": "search",           "value": "",      "description": "Filtro por nome" },
+                { "key": "type",             "value": "",      "description": "youth | couple" },
+                { "key": "skills[]",         "value": "",      "description": "Filtrar por habilidade" },
+                { "key": "never_in_movement","value": "false", "description": "Apenas quem nunca participou deste movimento" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Auto-montar equipes (IA)",
+          "request": {
+            "method": "POST",
+            "description": "Inicia o processo assíncrono de auto-montagem via IA (Claude). Retorna um `cache_key` para polling em **GET /api/jobs/status**.",
+            "url": { "raw": "{{base_url}}/api/encounters/{{encounter_id}}/auto-assemble", "host": ["{{base_url}}"], "path": ["api", "encounters", "{{encounter_id}}", "auto-assemble"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Relatórios de Encontro",
+      "item": [
+        {
+          "name": "Relatório PDF",
+          "request": {
+            "method": "GET",
+            "description": "Retorna o PDF com a lista completa de equipes e membros do encontro.",
+            "url": { "raw": "{{base_url}}/api/encounters/{{encounter_id}}/report/pdf", "host": ["{{base_url}}"], "path": ["api", "encounters", "{{encounter_id}}", "report", "pdf"] }
+          }
+        },
+        {
+          "name": "Narrativa do encontro (IA)",
+          "request": {
+            "method": "GET",
+            "description": "Gera ou retorna narrativa do encontro via IA. Pode ser assíncrono — verifique `cache_key` em GET /api/jobs/status.",
+            "url": { "raw": "{{base_url}}/api/encounters/{{encounter_id}}/report/narrative", "host": ["{{base_url}}"], "path": ["api", "encounters", "{{encounter_id}}", "report", "narrative"] }
+          }
+        },
+        {
+          "name": "Relatório de recusas",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/encounters/{{encounter_id}}/report/refusals", "host": ["{{base_url}}"], "path": ["api", "encounters", "{{encounter_id}}", "report", "refusals"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Equipes do Encontro",
+      "item": [
+        {
+          "name": "Listar equipes",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/encounters/{{encounter_id}}/teams", "host": ["{{base_url}}"], "path": ["api", "encounters", "{{encounter_id}}", "teams"] }
+          }
+        },
+        {
+          "name": "Criar equipe",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.data && json.data.id) pm.collectionVariables.set('team_id', json.data.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Equipe de Louvor\",\n  \"min_members\": 3,\n  \"max_members\": 8,\n  \"accepted_type\": \"all\",\n  \"recommended_skills\": [\"Música\"],\n  \"order\": 1\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/encounters/{{encounter_id}}/teams", "host": ["{{base_url}}"], "path": ["api", "encounters", "{{encounter_id}}", "teams"] }
+          }
+        },
+        {
+          "name": "Exibir equipe",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/teams/{{team_id}}", "host": ["{{base_url}}"], "path": ["api", "teams", "{{team_id}}"] }
+          }
+        },
+        {
+          "name": "Atualizar equipe",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Equipe de Louvor Atualizada\",\n  \"min_members\": 4,\n  \"max_members\": 10,\n  \"accepted_type\": \"all\",\n  \"recommended_skills\": [\"Música\", \"Canto\"]\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/teams/{{team_id}}", "host": ["{{base_url}}"], "path": ["api", "teams", "{{team_id}}"] }
+          }
+        },
+        {
+          "name": "Remover equipe",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{base_url}}/api/teams/{{team_id}}", "host": ["{{base_url}}"], "path": ["api", "teams", "{{team_id}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Membros da Equipe",
+      "item": [
+        {
+          "name": "Alocar pessoa na equipe",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.data && json.data.id) pm.collectionVariables.set('member_id', json.data.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"person_id\": \"{{person_id}}\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/teams/{{team_id}}/members", "host": ["{{base_url}}"], "path": ["api", "teams", "{{team_id}}", "members"] }
+          }
+        },
+        {
+          "name": "Atualizar status do membro",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"confirmed\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Valores possíveis de status:\n- `pending` → Pendente\n- `confirmed` → Confirmado\n- `refused` → Recusado (requer `refusal_reason`)",
+            "url": { "raw": "{{base_url}}/api/team-members/{{member_id}}/status", "host": ["{{base_url}}"], "path": ["api", "team-members", "{{member_id}}", "status"] }
+          }
+        },
+        {
+          "name": "Recusar membro",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"refused\",\n  \"refusal_reason\": \"Indisponível na data do encontro.\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/team-members/{{member_id}}/status", "host": ["{{base_url}}"], "path": ["api", "team-members", "{{member_id}}", "status"] }
+          }
+        },
+        {
+          "name": "Remover membro",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Motivo obrigatório apenas quando membro está confirmado.\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/team-members/{{member_id}}", "host": ["{{base_url}}"], "path": ["api", "team-members", "{{member_id}}"] }
+          }
+        },
+        {
+          "name": "Sugerir substituto (IA)",
+          "request": {
+            "method": "GET",
+            "description": "Retorna lista de pessoas sugeridas como substitutas para o membro, ordenadas por compatibilidade.",
+            "url": { "raw": "{{base_url}}/api/team-members/{{member_id}}/suggest-replacement", "host": ["{{base_url}}"], "path": ["api", "team-members", "{{member_id}}", "suggest-replacement"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Utilitários",
+      "item": [
+        {
+          "name": "Status de job assíncrono",
+          "request": {
+            "method": "GET",
+            "description": "Polling para verificar resultado de operações assíncronas (auto-montagem, narrativa, importação OCR). Retorna `{\"status\": \"processing\"}` enquanto processa ou `{\"status\": \"done\", \"data\": {...}}` quando concluído.",
+            "url": {
+              "raw": "{{base_url}}/api/jobs/status?cache_key=",
+              "host": ["{{base_url}}"], "path": ["api", "jobs", "status"],
+              "query": [{ "key": "cache_key", "value": "", "description": "Chave retornada pela operação assíncrona" }]
+            }
+          }
+        },
+        {
+          "name": "Logs de auditoria",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/audit-logs?per_page=20",
+              "host": ["{{base_url}}"], "path": ["api", "audit-logs"],
+              "query": [{ "key": "per_page", "value": "20" }]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
