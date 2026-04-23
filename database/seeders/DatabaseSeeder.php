@@ -17,12 +17,14 @@ class DatabaseSeeder extends Seeder
         }
 
         // Super Admin
-        $superAdmin = User::factory()->create([
-            'name' => 'Administrador Geral',
-            'email' => 'admin@segue-me.app',
-            'password' => bcrypt('admin@2026'),
-            'active' => true,
-        ]);
+        $superAdmin = User::firstOrCreate(
+            ['email' => 'admin@segue-me.app'],
+            [
+                'name' => 'Administrador Geral',
+                'password' => bcrypt('admin@2026'),
+                'active' => true,
+            ],
+        );
         $superAdmin->assignRole(UserRole::SuperAdmin->value);
     }
 }
