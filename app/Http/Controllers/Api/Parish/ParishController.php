@@ -54,7 +54,7 @@ class ParishController extends Controller
     public function show(string $id): ParishResource
     {
         return ParishResource::make(
-            $this->parishes->findOrFail($id)->load('sector')
+            $this->parishes->findOrFail($id)->load('sector.diocese')
         );
     }
 
@@ -63,7 +63,7 @@ class ParishController extends Controller
         $parish = $this->parishes->findOrFail($id);
         $this->parishes->update($parish, $request->validated());
 
-        return ParishResource::make($parish->refresh()->load('sector'));
+        return ParishResource::make($parish->refresh()->load('sector.diocese'));
     }
 
     public function destroy(string $id): JsonResponse
@@ -83,7 +83,7 @@ class ParishController extends Controller
         $parish = $this->parishes->findOrFail($id);
 
         return ParishResource::make(
-            $action->execute($parish, $request->file('logo'))
+            $action->execute($parish, $request->file('logo'))->load('sector.diocese')
         );
     }
 }
