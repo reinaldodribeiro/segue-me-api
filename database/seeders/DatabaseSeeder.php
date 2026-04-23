@@ -21,53 +21,11 @@ class DatabaseSeeder extends Seeder
 
         // Super Admin
         $superAdmin = User::factory()->create([
-            'name' => 'Super Admin',
+            'name' => 'Administrador Geral',
             'email' => 'admin@segue-me.app',
-            'password' => bcrypt('password'),
+            'password' => bcrypt('admin@2026'),
             'active' => true,
         ]);
         $superAdmin->assignRole(UserRole::SuperAdmin->value);
-
-        // Diocese exemplo
-        $diocese = Diocese::create([
-            'name' => 'Diocese de Exemplo',
-            'slug' => 'diocese-exemplo',
-        ]);
-
-        // Setor exemplo
-        $sector = Sector::create([
-            'diocese_id' => $diocese->id,
-            'name' => 'Setor Norte',
-            'slug' => 'setor-norte',
-        ]);
-
-        // Paróquia exemplo
-        $parish = Parish::create([
-            'sector_id' => $sector->id,
-            'name' => 'Paróquia São João',
-            'slug' => 'paroquia-sao-joao',
-            'primary_color' => '#2e6da4',
-            'secondary_color' => '#4a9fd4',
-        ]);
-
-        // Parish Admin
-        $parishAdmin = User::factory()->create([
-            'name' => 'Admin da Paróquia',
-            'email' => 'parish@segue-me.app',
-            'password' => bcrypt('password'),
-            'parish_id' => $parish->id,
-            'active' => true,
-        ]);
-        $parishAdmin->assignRole(UserRole::ParishAdmin->value);
-
-        // Coordinator
-        $coordinator = User::factory()->create([
-            'name' => 'Coordenador',
-            'email' => 'coord@segue-me.app',
-            'password' => bcrypt('password'),
-            'parish_id' => $parish->id,
-            'active' => true,
-        ]);
-        $coordinator->assignRole(UserRole::Coordinator->value);
     }
 }
