@@ -8,6 +8,7 @@ use App\Domain\Encounter\Models\Team;
 use App\Domain\People\Repositories\PersonRepositoryInterface;
 use App\Support\CacheKey;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class SuggestReplacement
 {
@@ -22,7 +23,7 @@ class SuggestReplacement
             CacheKey::replacementSuggestions($team->id),
             now()->addHours(2),
             function () use ($team) {
-                $available = $this->people->findAvailableForEncounter($team->encounter_id);
+                $available = $this->people->findAllAvailableForEncounter($team->encounter_id);
 
                 if ($available->isEmpty()) {
                     return [];
@@ -34,13 +35,24 @@ class SuggestReplacement
                     return [];
                 }
 
-                $result = $this->claude->completeAsJson(
-                    $prompt,
-                    [],
-                    'claude-haiku-4-5-20251001',
-                    'replacement_suggestion',
-                    ['team_id' => $team->id, 'encounter_id' => $team->encounter_id],
-                );
+                try {
+                    $result = $this->claude->completeAsJson(
+                        $prompt,
+                        [],
+                        'claude-haiku-4-5-20251001',
+                        'replacement_suggestion',
+                        ['team_id' => $team->id, 'encounter_id' => $team->encounter_id],
+                        timeout: 10,
+                    );
+                } catch (\Throwable $e) {
+                    Log::warning('SuggestReplacement: Claude API call failed, returning empty suggestions', [
+                        'team_id' => $team->id,
+                        'encounter_id' => $team->encounter_id,
+                        'error' => $e->getMessage(),
+                    ]);
+
+                    return [];
+                }
 
                 return collect($result['suggestions'] ?? [])
                     ->filter(fn ($s) => isset($s['i']) && isset($indexMap[$s['i']]))

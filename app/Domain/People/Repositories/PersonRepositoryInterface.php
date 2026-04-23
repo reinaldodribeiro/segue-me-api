@@ -12,7 +12,9 @@ interface PersonRepositoryInterface
 
     public function findOrFail(string $id): Person;
 
-    public function findAvailableForEncounter(string $encounterId, array $filters = []): Collection;
+    public function findAvailableForEncounter(string $encounterId, array $filters = [], int $perPage = 15): LengthAwarePaginator;
+
+    public function findAllAvailableForEncounter(string $encounterId, array $filters = []): Collection;
 
     public function create(array $data): Person;
 

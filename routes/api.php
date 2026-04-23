@@ -106,6 +106,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('encounters', EncounterController::class);
     Route::get('encounters/{encounter}/summary', [EncounterController::class, 'summary'])->name('encounters.summary');
     Route::get('encounters/{encounter}/available-people', [EncounterController::class, 'availablePeople'])->name('encounters.available-people');
+    Route::get('encounters/{encounter}/previous-participants', [EncounterController::class, 'previousParticipants'])->name('encounters.previous-participants');
     Route::delete('encounters/{encounter}/members', [EncounterController::class, 'resetMembers'])->name('encounters.reset-members');
     Route::post('encounters/{encounter}/sync-teams', SyncTeamTemplatesController::class)->name('encounters.sync-teams');
 
@@ -136,11 +137,15 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Equipes
     Route::apiResource('encounters.teams', TeamController::class)->shallow();
-    Route::get('teams/{team}/suggest-members', [TeamController::class, 'suggestMembers'])->name('teams.suggest-members');
 
     // Membros
     Route::post('teams/{team}/members', [TeamMemberController::class, 'store'])->name('team-members.store');
     Route::delete('team-members/{teamMember}', [TeamMemberController::class, 'destroy'])->name('team-members.destroy');
     Route::patch('team-members/{teamMember}/status', [TeamMemberController::class, 'updateStatus'])->name('team-members.status');
-    Route::get('team-members/{teamMember}/suggest-replacement', [TeamMemberController::class, 'suggestReplacement'])->name('team-members.suggest-replacement');
+
+    // Sugestões de IA (rate-limited: 3 req/min)
+    Route::middleware('throttle:3,1')->group(function () {
+        Route::get('teams/{team}/suggest-members', [TeamController::class, 'suggestMembers'])->name('teams.suggest-members');
+        Route::get('team-members/{teamMember}/suggest-replacement', [TeamMemberController::class, 'suggestReplacement'])->name('team-members.suggest-replacement');
+    });
 });

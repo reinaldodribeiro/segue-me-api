@@ -8,6 +8,7 @@ use App\Domain\Encounter\Actions\UpdateEncounter;
 use App\Domain\Encounter\DTOs\CreateEncounterDTO;
 use App\Domain\Encounter\DTOs\UpdateEncounterDTO;
 use App\Domain\Encounter\Models\Encounter;
+use App\Domain\Encounter\Models\TeamMember;
 use App\Domain\Encounter\Repositories\EncounterRepositoryInterface;
 use App\Domain\People\Repositories\PersonRepositoryInterface;
 use App\Exceptions\EncounterNotEditableException;
@@ -21,6 +22,7 @@ use App\Support\Enums\TeamMemberStatus;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\DB;
 
 class EncounterController extends Controller
 {
@@ -61,7 +63,11 @@ class EncounterController extends Controller
         $encounter = $this->encounters->findOrFail($id);
         $this->authorize('view', $encounter);
 
-        $encounter->load(['movement', 'responsibleUser', 'teams.members.person']);
+        $encounter->load([
+            'movement',
+            'responsibleUser',
+            'teams.members.person:id,parish_id,type,name,partner_name,photo,birth_date,partner_birth_date,wedding_date,email,skills,notes,engagement_score,active,encounter_year,nickname,address,birthplace,phones,church_movement,received_at,encounter_details,father_name,mother_name,education_level,education_status,course,institution,sacraments,available_schedule,musical_instruments,talks_testimony,partner_nickname,partner_birthplace,partner_email,partner_phones,partner_photo,home_phones,created_at,deleted_at',
+        ]);
 
         return EncounterResource::make($encounter);
     }
@@ -117,7 +123,7 @@ class EncounterController extends Controller
             'is_below_minimum' => $team->isBelowMinimum(),
         ]);
 
-        $allMembers = $encounter->teamMembers()->get();
+        $allMembers = $encounter->teams->flatMap->members;
 
         return response()->json([
             'data' => [
@@ -138,10 +144,69 @@ class EncounterController extends Controller
         $encounter = $this->encounters->findOrFail($id);
         $this->authorize('view', $encounter);
 
-        $filters = $request->only(['never_in_movement']);
-        $people = $this->people->findAvailableForEncounter($id, $filters);
+        $filters = $request->only(['search', 'never_in_movement']);
+        $perPage = $request->integer('per_page', 15);
+
+        // Priority filter: people who participated in the previous encounter of the same movement
+        // Combines two signals: confirmed team_members from previous encounter + imported people with encounter_year
+        if ($request->boolean('priority')) {
+            $previousQuery = Encounter::where('movement_id', $encounter->movement_id)
+                ->where('id', '!=', $encounter->id);
+
+            if ($encounter->date !== null) {
+                $previousQuery->where('date', '<', $encounter->date)->orderByDesc('date');
+            } else {
+                $previousQuery->orderByDesc('created_at');
+            }
+
+            $previous = $previousQuery->first();
+
+            $previousPersonIds = $previous
+                ? DB::table('encounter_participants')
+                    ->where('encounter_id', $previous->id)
+                    ->whereNotNull('converted_to_person_id')
+                    ->pluck('converted_to_person_id')
+                    ->unique()
+                    ->values()
+                    ->toArray()
+                : [];
+
+            $filters['priority_previous_ids'] = $previousPersonIds;
+        }
+
+        $people = $this->people->findAvailableForEncounter($id, $filters, $perPage);
 
         return PersonAvailabilityResource::collection($people);
+    }
+
+    public function previousParticipants(string $id): JsonResponse
+    {
+        $encounter = $this->encounters->findOrFail($id);
+        $this->authorize('view', $encounter);
+
+        $previousQuery = Encounter::where('movement_id', $encounter->movement_id)
+            ->where('id', '!=', $encounter->id);
+
+        if ($encounter->date !== null) {
+            $previousQuery->where('date', '<', $encounter->date)->orderByDesc('date');
+        } else {
+            $previousQuery->orderByDesc('created_at');
+        }
+
+        $previous = $previousQuery->first();
+
+        if (! $previous) {
+            return response()->json(['data' => []]);
+        }
+
+        $personIds = TeamMember::whereHas('team', fn ($q) => $q->where('encounter_id', $previous->id))
+            ->where('status', TeamMemberStatus::Confirmed)
+            ->pluck('person_id')
+            ->unique()
+            ->values()
+            ->toArray();
+
+        return response()->json(['data' => $personIds]);
     }
 
     public function resetMembers(string $id): JsonResponse
@@ -150,7 +215,7 @@ class EncounterController extends Controller
         $this->authorize('update', $encounter);
         throw_if($encounter->isCompleted(), EncounterNotEditableException::class);
 
-        $encounter->teamMembers()->delete();
+        TeamMember::whereIn('team_id', $encounter->teams()->pluck('id'))->delete();
 
         return response()->json(['message' => 'Todas as equipes foram resetadas.']);
     }

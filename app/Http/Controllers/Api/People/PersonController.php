@@ -203,9 +203,17 @@ class PersonController extends Controller
         return response()->json($result);
     }
 
-    public function importTemplate(): BinaryFileResponse
+    public function importTemplate(Request $request): BinaryFileResponse
     {
-        return Excel::download(new PeopleImportTemplateExport, 'modelo-importacao-pessoas.xlsx');
+        $type = $request->query('type', 'youth');
+        if (! in_array($type, ['youth', 'couple'])) {
+            $type = 'youth';
+        }
+        $filename = $type === 'couple'
+            ? 'modelo-importacao-casais.xlsx'
+            : 'modelo-importacao-jovens.xlsx';
+
+        return Excel::download(new PeopleImportTemplateExport($type), $filename);
     }
 
     public function recalculateScore(string $id): JsonResponse

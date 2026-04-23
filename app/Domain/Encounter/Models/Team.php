@@ -71,11 +71,41 @@ class Team extends Model
 
     public function isFull(): bool
     {
-        return $this->members()->whereNotIn('status', [TeamMemberStatus::Refused->value])->count() >= $this->max_members;
+        return $this->activeCount() >= $this->max_members;
     }
 
     public function isBelowMinimum(): bool
     {
-        return $this->members()->confirmed()->count() < $this->min_members;
+        return $this->confirmedCount() < $this->min_members;
+    }
+
+    /**
+     * Count of non-refused members using in-memory collection when available,
+     * falling back to a database COUNT only when the relation is not loaded.
+     */
+    public function activeCount(): int
+    {
+        if ($this->relationLoaded('members')) {
+            return $this->members
+                ->filter(fn ($m) => $m->status !== TeamMemberStatus::Refused)
+                ->count();
+        }
+
+        return $this->members()->whereNotIn('status', [TeamMemberStatus::Refused->value])->count();
+    }
+
+    /**
+     * Count of confirmed members using in-memory collection when available,
+     * falling back to a database COUNT only when the relation is not loaded.
+     */
+    public function confirmedCount(): int
+    {
+        if ($this->relationLoaded('members')) {
+            return $this->members
+                ->filter(fn ($m) => $m->status === TeamMemberStatus::Confirmed)
+                ->count();
+        }
+
+        return $this->members()->confirmed()->count();
     }
 }

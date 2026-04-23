@@ -52,6 +52,7 @@ class PersonAvailabilityResource extends JsonResource
             'engagement_score' => $this->engagement_score,
             'engagement_level' => $this->engagementLevel(),
             'active' => $this->active,
+            'encounter_year' => $this->encounter_year,
 
             // Indicadores de compatibilidade (RF-22)
             'past_teams' => $pastTeams,

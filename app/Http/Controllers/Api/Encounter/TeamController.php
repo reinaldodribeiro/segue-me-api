@@ -89,7 +89,7 @@ class TeamController extends Controller
         $this->authorize('manage', $team);
 
         $role = in_array($request->query('role'), ['coordinator', 'member']) ? $request->query('role') : 'member';
-        $available = $this->people->findAvailableForEncounter($team->encounter_id);
+        $available = $this->people->findAllAvailableForEncounter($team->encounter_id);
         $suggestions = $action->execute($team, $available, $role);
 
         return response()->json(['data' => $suggestions]);

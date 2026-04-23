@@ -1,0 +1,6 @@
+Branch: main
+Changes: 1 staged, 18 modified, 3 untracked
+Files: pp/Domain/Encounter/Actions/SuggestMembersForTeam.php, app/Domain/Encounter/Actions/SuggestReplacement.php, app/Domain/Encounter/Listeners/RecalculateAllScores.php, app/Domain/Encounter/Listeners/RecalculateEngagementScore.php, app/Domain/Encounter/Models/Team.php, app/Domain/People/Actions/DetectDuplicates.php, app/Domain/People/Listeners/DetectDuplicatesOnImport.php, app/Domain/People/Models/Person.php, app/Domain/People/Repositories/PersonRepositoryInterface.php, app/Domain/People/Services/EngagementScoreCalculator.php, app/Exports/PeopleImportTemplateExport.php, app/Http/Controllers/Api/Encounter/EncounterController.php, app/Http/Controllers/Api/Encounter/TeamController.php, app/Http/Controllers/Api/People/PersonController.php, app/Http/Resources/People/PersonAvailabilityResource.php, app/Infrastructure/Repositories/EloquentPersonRepository.php, app/Jobs/ProcessSpreadsheetImport.php, app/Providers/EventServiceProvider.php, routes/api.php, .claude/agent-memory/
+Recent commits:
+578e71c Initial commit: segue-me-api (Laravel DDD REST API)
+Compact trigger: auto

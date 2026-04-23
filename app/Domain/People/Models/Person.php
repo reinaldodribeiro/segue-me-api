@@ -101,12 +101,10 @@ class Person extends Model
     public function pastTeamNames(): array
     {
         return $this->teamMembers()
-            ->with('team')
             ->confirmed()
-            ->get()
-            ->pluck('team.name')
-            ->unique()
-            ->values()
+            ->join('teams', 'teams.id', '=', 'team_members.team_id')
+            ->distinct()
+            ->pluck('teams.name')
             ->toArray();
     }
 
@@ -129,7 +127,7 @@ class Person extends Model
 
     public function yearsActive(): int
     {
-        $first = $this->teamMembers()->oldest('invited_at')->value('invited_at');
+        $first = $this->teamMembers()->min('invited_at');
 
         if (! $first) {
             return 0;
