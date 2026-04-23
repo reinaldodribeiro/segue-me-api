@@ -2,9 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Domain\Parish\Models\Diocese;
-use App\Domain\Parish\Models\Parish;
-use App\Domain\Parish\Models\Sector;
 use App\Models\User;
 use App\Support\Enums\UserRole;
 use Illuminate\Database\Seeder;

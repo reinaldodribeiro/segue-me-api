@@ -16,7 +16,7 @@ class TeamFactory extends Factory
         return [
             'encounter_id' => Encounter::factory(),
             'movement_team_id' => null,
-            'name' => fake()->randomElement(['Louvor', 'Secretaria', 'Cozinha', 'Decoração', 'Acolhida']),
+            'name' => $this->faker->randomElement(['Louvor', 'Secretaria', 'Cozinha', 'Decoração', 'Acolhida']),
             'min_members' => 2,
             'max_members' => 5,
             'accepted_type' => TeamAcceptedType::All,

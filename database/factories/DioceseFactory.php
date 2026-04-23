@@ -12,7 +12,7 @@ class DioceseFactory extends Factory
 
     public function definition(): array
     {
-        $name = fake()->unique()->city().' Diocese';
+        $name = $this->faker->unique()->city().' Diocese';
 
         return [
             'name' => $name,

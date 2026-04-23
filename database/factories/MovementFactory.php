@@ -14,10 +14,10 @@ class MovementFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => fake()->randomElement(['Segue-me', 'Renascer', 'Encontro de Casais', 'Emaús']),
+            'name' => $this->faker->randomElement(['Segue-me', 'Renascer', 'Encontro de Casais', 'Emaús']),
             'target_audience' => TeamAcceptedType::Youth,
             'scope' => MovementScope::Parish,
-            'description' => fake()->sentence(),
+            'description' => $this->faker->sentence(),
             'active' => true,
         ];
     }

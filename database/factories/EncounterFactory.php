@@ -21,10 +21,10 @@ class EncounterFactory extends Factory
             'parish_id' => $parish->id,
             'movement_id' => Movement::factory(),
             'responsible_user_id' => User::factory()->create(['parish_id' => $parish->id])->id,
-            'name' => fake()->randomElement(['42º Segue-me', '15º Renascer', '8º ECC']),
-            'edition_number' => fake()->numberBetween(1, 50),
-            'date' => fake()->dateTimeBetween('now', '+1 year')->format('Y-m-d'),
-            'location' => fake()->address(),
+            'name' => $this->faker->randomElement(['42º Segue-me', '15º Renascer', '8º ECC']),
+            'edition_number' => $this->faker->numberBetween(1, 50),
+            'date' => $this->faker->dateTimeBetween('now', '+1 year')->format('Y-m-d'),
+            'location' => $this->faker->address(),
             'status' => EncounterStatus::Draft,
         ];
     }

@@ -15,7 +15,7 @@ class MovementTeamFactory extends Factory
     {
         return [
             'movement_id' => Movement::factory(),
-            'name' => fake()->randomElement(['Louvor', 'Secretaria', 'Cozinha', 'Decoração', 'Audiovisual']),
+            'name' => $this->faker->randomElement(['Louvor', 'Secretaria', 'Cozinha', 'Decoração', 'Audiovisual']),
             'min_members' => 2,
             'max_members' => 5,
             'accepted_type' => TeamAcceptedType::All,

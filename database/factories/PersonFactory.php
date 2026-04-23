@@ -16,12 +16,12 @@ class PersonFactory extends Factory
         return [
             'parish_id' => Parish::factory(),
             'type' => PersonType::Youth,
-            'name' => fake()->name(),
+            'name' => $this->faker->name(),
             'partner_name' => null,
             'photo' => null,
-            'birth_date' => fake()->date('Y-m-d', '-18 years'),
-            'phones' => [fake()->numerify('119########')],
-            'email' => fake()->unique()->safeEmail(),
+            'birth_date' => $this->faker->date('Y-m-d', '-18 years'),
+            'phones' => [$this->faker->numerify('119########')],
+            'email' => $this->faker->unique()->safeEmail(),
             'skills' => [],
             'notes' => null,
             'engagement_score' => 0,
@@ -33,8 +33,8 @@ class PersonFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'type' => PersonType::Couple,
-            'partner_name' => fake()->name(),
-            'wedding_date' => fake()->date('Y-m-d', '-1 year'),
+            'partner_name' => $this->faker->name(),
+            'wedding_date' => $this->faker->date('Y-m-d', '-1 year'),
         ]);
     }
 

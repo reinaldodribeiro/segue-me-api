@@ -13,7 +13,7 @@ class ParishFactory extends Factory
 
     public function definition(): array
     {
-        $name = 'Paróquia '.fake()->unique()->name();
+        $name = 'Paróquia '.$this->faker->unique()->name();
 
         return [
             'sector_id' => Sector::factory(),

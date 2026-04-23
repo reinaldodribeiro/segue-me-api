@@ -13,7 +13,7 @@ class SectorFactory extends Factory
 
     public function definition(): array
     {
-        $name = 'Setor '.fake()->unique()->word();
+        $name = 'Setor '.$this->faker->unique()->word();
 
         return [
             'diocese_id' => Diocese::factory(),
