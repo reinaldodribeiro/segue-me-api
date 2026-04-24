@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\Audit\AuditLogController;
 use App\Http\Controllers\Api\Auth\LoginController;
 use App\Http\Controllers\Api\Auth\LogoutController;
 use App\Http\Controllers\Api\Auth\MeController;
+use App\Http\Controllers\Api\Auth\RefreshController;
 use App\Http\Controllers\Api\Auth\TutorialController;
 use App\Http\Controllers\Api\Auth\UpdatePasswordController;
 use App\Http\Controllers\Api\Auth\UserController;
@@ -46,6 +47,7 @@ Route::middleware('throttle:10,1')->group(function () {
 Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('auth/logout', LogoutController::class)->name('auth.logout');
+    Route::post('auth/refresh', RefreshController::class)->name('auth.refresh');
     Route::get('auth/me', MeController::class)->name('auth.me');
     Route::put('me/password', UpdatePasswordController::class)->name('me.password');
     Route::get('me/tutorial', [TutorialController::class, 'index'])->name('me.tutorial.index');

@@ -4,40 +4,25 @@ namespace App\Http\Controllers\Api\Auth;
 
 use App\Domain\Encounter\Repositories\MovementRepositoryInterface;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Auth\LoginRequest;
-use App\Models\User;
 use App\Support\Enums\UserRole;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Http\Request;
 
-class LoginController extends Controller
+class RefreshController extends Controller
 {
     public function __construct(
         private readonly MovementRepositoryInterface $movements,
     ) {}
 
-    public function __invoke(LoginRequest $request): JsonResponse
+    public function __invoke(Request $request): JsonResponse
     {
-        $user = User::with(['roles', 'movements'])->where('email', $request->email)->first();
+        $user = $request->user()->load(['roles', 'movements', 'parish']);
 
-        if (! $user || ! Hash::check($request->password, $user->password)) {
-            throw ValidationException::withMessages([
-                'email' => ['As credenciais informadas estão incorretas.'],
-            ]);
-        }
-
-        if (! $user->active) {
-            throw ValidationException::withMessages([
-                'email' => ['Sua conta está inativa. Entre em contato com o administrador.'],
-            ]);
-        }
-
-        $expiration = $request->boolean('remember_me')
-            ? now()->addDays(30)
-            : now()->addHours(8);
+        $expiration = now()->addHours(8);
 
         $token = $user->createToken('api', ['*'], $expiration);
+
+        $request->user()->currentAccessToken()->delete();
 
         if ($user->hasRole(UserRole::ParishAdmin->value)) {
             $movementIds = $this->movements->activeIds();
